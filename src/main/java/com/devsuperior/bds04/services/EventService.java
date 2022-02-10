@@ -19,7 +19,7 @@ public class EventService {
 
 	@Autowired
 	private EventRepository repository;
-	
+
 	@Transactional
 	public EventDTO update(Long id, EventDTO dto) {
 		try {
@@ -27,10 +27,23 @@ public class EventService {
 			copyDtoToEntity(dto, entity);
 			entity = repository.save(entity);
 			return new EventDTO(entity);
-		}
-		catch (EntityNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			throw new ResourceNotFoundException("Id not found: " + id);
 		}
+	}
+
+	@Transactional(readOnly=true)
+	public Page<EventDTO> findAll(Pageable pageable) {
+		Page<Event> listEntity = repository.findAll(pageable);
+		return listEntity.map(obj -> new EventDTO(obj));
+	}
+
+	@Transactional
+	public EventDTO insert(EventDTO dto) {
+		Event entity = new Event();
+		copyDtoToEntity(dto, entity);
+		entity = repository.save(entity);
+		return new EventDTO(entity);
 	}
 	
 	private void copyDtoToEntity(EventDTO dto, Event entity) {
@@ -38,21 +51,5 @@ public class EventService {
 		entity.setDate(dto.getDate());
 		entity.setUrl(dto.getUrl());
 		entity.setCity(new City(dto.getCityId(), null));
-		}
-
-	public Page<EventDTO> findAll(Pageable pageable) {
-		Page<Event> listEntity = repository.findAll(pageable);
-		return listEntity.map(obj -> new EventDTO(obj));
 	}
-
-	public EventDTO insert(EventDTO dto) {
-		Event entity = new Event();
-		entity.setName(dto.getName());
-		entity.setDate(dto.getDate());
-		entity.setUrl(dto.getUrl());
-		entity.setCity(new City(dto.getCityId(), null));
-		entity = repository.save(entity);
-		return new EventDTO(entity);
-	}
-	}
-
+}
